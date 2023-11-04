@@ -6,6 +6,9 @@ members = [
 	"domino-cli",
 ]
 
+[workspace.dependencies]
+winres = "0.1"
+
 [profile.release]
 codegen-units = 1
 lto = true
