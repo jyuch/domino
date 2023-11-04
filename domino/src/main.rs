@@ -1,5 +1,4 @@
 use tonic::{Request, Response, Status};
-use tonic_reflection::server::Builder;
 
 mod hello_world {
     tonic::include_proto!("hello_world");
@@ -28,17 +27,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "127.0.0.1:50051".parse()?;
     let hello_service = MyHelloService {};
 
-    tonic::transport::Server::builder()
-        .add_service(HelloServiceServer::new(hello_service))
-        .add_service(
-            Builder::configure()
+    let mut builder = tonic::transport::Server::builder();
+
+    let mut builder = builder.add_service(HelloServiceServer::new(hello_service));
+
+    if cfg!(debug_assertions) {
+        builder = builder.add_service(
+            tonic_reflection::server::Builder::configure()
                 .register_encoded_file_descriptor_set(tonic::include_file_descriptor_set!(
                     "descriptor"
                 ))
                 .build()?,
-        )
-        .serve(addr)
-        .await?;
+        );
+    }
+
+    builder.serve(addr).await?;
 
     Ok(())
 }
